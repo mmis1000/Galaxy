@@ -8,10 +8,12 @@ import one.oktw.galaxy.galaxy.planet.enums.PlanetType
 import one.oktw.galaxy.galaxy.planet.enums.PlanetType.NORMAL
 import one.oktw.galaxy.galaxy.planet.gen.NetherGenModifier
 import one.oktw.galaxy.galaxy.planet.gen.NormalGenModifier
+import one.oktw.galaxy.galaxy.planet.gen.VoidGenModifier
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.world.DimensionTypes.NETHER
 import org.spongepowered.api.world.World
 import org.spongepowered.api.world.WorldArchetype
+import org.spongepowered.api.world.gen.WorldGeneratorModifiers
 import org.spongepowered.api.world.storage.WorldProperties
 import java.io.IOException
 import java.io.UncheckedIOException
@@ -38,6 +40,14 @@ class PlanetHelper {
             .randomSeed()
             .build("planet_nether", "planet_nether")
 
+        private val voidArchetype = Sponge.getRegistry().getType(WorldArchetype::class.java, "planet_void").orElse(null) ?: WorldArchetype.builder()
+            .generateSpawnOnLoad(false)
+            .loadsOnStartup(false)
+            .keepsSpawnLoaded(false)
+            .generatorModifiers(WorldGeneratorModifiers.VOID, VoidGenModifier())
+            .randomSeed()
+            .build("planet_void", "planet_void")
+
         suspend fun createPlanet(name: String, type: PlanetType = NORMAL): Planet {
             if (server.getWorldProperties(name).isPresent)
                 throw IllegalArgumentException("World already exists")
@@ -49,6 +59,7 @@ class PlanetHelper {
                 PlanetType.NORMAL -> normalArchetype
                 PlanetType.NETHER -> netherArchetype
                 PlanetType.END -> TODO()
+                PlanetType.VOID -> voidArchetype
             }
 
             logger.info("Create World [{}]", name)

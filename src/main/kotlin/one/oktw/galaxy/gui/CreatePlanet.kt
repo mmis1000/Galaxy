@@ -11,8 +11,7 @@ import one.oktw.galaxy.galaxy.data.extensions.update
 import one.oktw.galaxy.galaxy.planet.TeleportHelper
 import one.oktw.galaxy.galaxy.planet.data.extensions.loadWorld
 import one.oktw.galaxy.galaxy.planet.enums.PlanetType
-import one.oktw.galaxy.galaxy.planet.enums.PlanetType.NETHER
-import one.oktw.galaxy.galaxy.planet.enums.PlanetType.NORMAL
+import one.oktw.galaxy.galaxy.planet.enums.PlanetType.*
 import one.oktw.galaxy.item.enums.ButtonType.*
 import one.oktw.galaxy.item.type.Button
 import one.oktw.galaxy.util.Chat.Companion.confirm
@@ -35,7 +34,7 @@ import java.util.*
 
 class CreatePlanet(private val galaxy: Galaxy) : GUI() {
     private val lang = languageService.getDefaultLanguage()
-    private val buttonID = Array(3) { UUID.randomUUID() }
+    private val buttonID = Array(4) { UUID.randomUUID() }
     override val token = "CreatePlanet-${galaxy.uuid}"
     override val inventory: Inventory = Inventory.builder()
         .of(InventoryArchetypes.HOPPER)
@@ -67,6 +66,13 @@ class CreatePlanet(private val galaxy: Galaxy) : GUI() {
                 offer(DISPLAY_NAME, Text.of(GREEN, lang["UI.Button.PlanetTypeEnd"]))
             }
             .let { inventory.set(4, 0, it) }
+
+        Button(WARNING).createItemStack()
+            .apply {
+                offer(DataUUID(buttonID[3]))
+                offer(DISPLAY_NAME, Text.of(GREEN, lang["UI.Button.PlanetTypeEnd"]))
+            }
+            .let { inventory.set(3, 0, it) }
 
         // fill empty slot
         GUIHelper.fillEmptySlot(inventory)
@@ -101,6 +107,14 @@ class CreatePlanet(private val galaxy: Galaxy) : GUI() {
                 }
 
                 launch { if (createPlanet(player, galaxy, NETHER)) galaxy.update { takeStarDust(1000) } }
+            }
+            buttonID[3] -> {
+                if (galaxy.planets.any { it.type == VOID }) {
+                    player.sendMessage(Text.of(RED, "目前每種類別的星系僅能創建一個！請等待日後開放"))
+                    return
+                }
+
+                launch { createPlanet(player, galaxy, VOID) }
             }
             buttonID[2] -> player.sendMessage(Text.of(RED, "尚未開放！")) // TODO planet type end
         }

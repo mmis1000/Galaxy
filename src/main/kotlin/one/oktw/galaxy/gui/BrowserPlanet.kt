@@ -50,6 +50,7 @@ class BrowserPlanet(private val galaxy: Galaxy) : PageGUI() {
                     NORMAL -> Button(PLANET_O)
                     NETHER -> Button(PLANET_N)
                     END -> Button(PLANET_E)
+                    VOID -> Button(WARNING)
                 }.createItemStack().apply {
                     offer(DataUUID(it.uuid))
                     offer(Keys.DISPLAY_NAME, Text.of(TextColors.GREEN, TextStyles.BOLD, it.name))

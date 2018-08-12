@@ -8,6 +8,7 @@ import ninja.leaping.configurate.loader.ConfigurationLoader
 import one.oktw.galaxy.galaxy.GalaxyManager
 import one.oktw.galaxy.galaxy.planet.gen.NetherGenModifier
 import one.oktw.galaxy.galaxy.planet.gen.NormalGenModifier
+import one.oktw.galaxy.galaxy.planet.gen.VoidGenModifier
 import one.oktw.galaxy.internal.DatabaseManager
 import one.oktw.galaxy.internal.LanguageService
 import one.oktw.galaxy.internal.register.CommandRegister
@@ -78,6 +79,7 @@ class Main {
     fun onRegister(event: GameRegistryEvent.Register<WorldGeneratorModifier>) {
         event.register(NormalGenModifier())
         event.register(NetherGenModifier())
+        event.register(VoidGenModifier())
     }
 
     @Listener
