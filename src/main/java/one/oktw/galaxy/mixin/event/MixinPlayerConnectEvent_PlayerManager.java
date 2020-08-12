@@ -16,28 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package one.oktw.galaxy.mixin.tweak;
+package one.oktw.galaxy.mixin.event;
 
-import net.minecraft.server.dedicated.DedicatedServer;
-import net.minecraft.server.rcon.RconClient;
-import org.apache.logging.log4j.Logger;
+import net.minecraft.network.ClientConnection;
+import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ServerPlayerEntity;
+import one.oktw.galaxy.Main;
+import one.oktw.galaxy.event.type.PlayerConnectEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.net.Socket;
-
-@Mixin(RconClient.class)
-public class MixinRCON_RconClient extends MixinRCON_RconBase {
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void checkLocal(DedicatedServer server, String password, Socket socket, CallbackInfo ci) {
-        if (socket.getInetAddress().isLoopbackAddress()) isLocal = true;
-    }
-
-    @Redirect(method = "run", at = @At(value = "INVOKE", target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;)V"), remap = false)
-    private void noLocalLog(Logger logger, String message, Object description) {
-        if (!isLocal) logger.info(message, description);
+@Mixin(PlayerManager.class)
+abstract public class MixinPlayerConnectEvent_PlayerManager {
+    @Inject(
+        method = "onPlayerConnect(Lnet/minecraft/network/ClientConnection;Lnet/minecraft/server/network/ServerPlayerEntity;)V",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/server/network/ServerPlayerEntity;onSpawn()V"
+        )
+    )
+    void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
+        PlayerConnectEvent ev = new PlayerConnectEvent(player);
+        Main.Companion.getMain().getEventManager().emit(ev);
     }
 }

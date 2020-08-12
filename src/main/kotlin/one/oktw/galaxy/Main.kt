@@ -18,6 +18,7 @@
 
 package one.oktw.galaxy
 
+import com.mojang.authlib.GameProfile
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -26,18 +27,25 @@ import net.fabricmc.api.DedicatedServerModInitializer
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.server.ServerStartCallback
 import net.minecraft.server.dedicated.MinecraftDedicatedServer
+import net.minecraft.text.LiteralText
 import net.minecraft.util.Identifier
 import one.oktw.galaxy.chat.Exchange
 import one.oktw.galaxy.command.commands.Admin
 import one.oktw.galaxy.command.commands.Home
 import one.oktw.galaxy.command.commands.Join
 import one.oktw.galaxy.event.EventManager
+import one.oktw.galaxy.event.annotation.EventListener
+import one.oktw.galaxy.event.type.PlayerConnectEvent
 import one.oktw.galaxy.player.Harvest
 import one.oktw.galaxy.player.PlayerControl
 import one.oktw.galaxy.player.Sign
 import one.oktw.galaxy.proxy.api.ProxyAPI
 import one.oktw.galaxy.resourcepack.ResourcePack
+import org.apache.commons.io.IOUtils
+import java.io.IOException
+import java.net.URL
 import java.util.*
+
 
 @Suppress("unused")
 class Main : DedicatedServerModInitializer {
@@ -80,14 +88,21 @@ class Main : DedicatedServerModInitializer {
                 }
             }
 
+            class Log {
+                @EventListener()
+                fun onConnect(ev: PlayerConnectEvent) {
+                    ev.player.sendMessage(LiteralText("current server id is $selfUID"), false)
+                    val owner = server.userCache.getByUuid(selfUID) ?: server.sessionService.fillProfileProperties(GameProfile(selfUID, null), true)
+                    ev.player.sendMessage(LiteralText("owner is ${owner?.name ?: "unknown"}"), false)
+                }
+            }
+
             //Events
             eventManager.register(Exchange())
             eventManager.register(PlayerControl())
             eventManager.register(Harvest())
             eventManager.register(Sign())
+            eventManager.register(Log())
         })
-
-        // server.log("current server id is $selfUID
-        println("current server id is $selfUID")
     }
 }
