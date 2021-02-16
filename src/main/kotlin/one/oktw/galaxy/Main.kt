@@ -18,10 +18,7 @@
 
 package one.oktw.galaxy
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import net.fabricmc.api.DedicatedServerModInitializer
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
@@ -40,6 +37,7 @@ import one.oktw.galaxy.command.commands.Spawn
 import one.oktw.galaxy.event.EventManager
 import one.oktw.galaxy.event.type.ProxyResponseEvent
 import one.oktw.galaxy.mixin.interfaces.CustomRecipeManager
+import one.oktw.galaxy.network.LocalPublisher
 import one.oktw.galaxy.player.Harvest
 import one.oktw.galaxy.player.Sign
 import one.oktw.galaxy.proxy.api.ProxyAPI
@@ -52,6 +50,7 @@ class Main : DedicatedServerModInitializer {
         private set
     lateinit var eventManager: EventManager
         private set
+    private lateinit var publisher: Job
 
     companion object {
         val PROXY_IDENTIFIER = Identifier("galaxy", "proxy")
@@ -103,6 +102,14 @@ class Main : DedicatedServerModInitializer {
             eventManager.register(one.oktw.galaxy.item.event.Wrench())
             eventManager.register(Elevator())
             eventManager.register(AngelBlock())
+        })
+
+        ServerLifecycleEvents.SERVER_STARTED.register(ServerLifecycleEvents.ServerStarted {
+            publisher = LocalPublisher.publish(server.motd, server.port.toString())
+        })
+
+        ServerLifecycleEvents.SERVER_STOPPING.register(ServerLifecycleEvents.ServerStopping {
+            publisher.cancel()
         })
 
         // server.log("current server id is $selfUID
